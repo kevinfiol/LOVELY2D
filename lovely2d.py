@@ -163,7 +163,7 @@ class LoveListener(sublime_plugin.EventListener):
         if (keyword.split('.')[0] == 'love'):
             newCompletions = self.get_completions(keyword)
             self.loveCompletions.completions = None
-            self.loveCompletions.set_completions(newCompletions)
+            self.loveCompletions.set_completions(newCompletions, flags=sublime.INHIBIT_REORDER)
         else:
             self.loveCompletions.completions = None
             self.loveCompletions.set_completions([])
