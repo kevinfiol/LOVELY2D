@@ -14,44 +14,60 @@ class LoveCommand(sublime_plugin.TextCommand):
         flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY if hide_on_mouse_move else sublime.COOPERATE_WITH_AUTO_COMPLETE
 
         signature = None
-        if meta["prop_type"] == 'function':
+        if meta['prop_type'] == 'function':
             signature = key
             if 'arguments' in meta:
                 signature += '('
                 for i, arg in enumerate(meta['arguments']):
-                    signature += f'{arg["name"]}: {arg["type"]}'
-                    if 'default' in arg: signature += f' = {arg["default"]}'
+                    signature += '{}: {}'.format(arg['name'], arg['type'])
+                    if 'default' in arg: signature += ' = {}'.format(arg['default'])
                     if i != len(meta['arguments']) - 1: signature += ', '
                 signature += ')'
             else:
                 signature += '()'
 
-        content = ''
-        content += '<div id="sublime_love_container" style="padding: 0.6rem">'
-        content += f'<p style="background-color: color(black alpha(0.25)); padding: 0.4rem;"><code>{signature or key}</code></p>'
-        content += f'<strong>{meta["prop_type"]}</strong> <span style="font-size: 1.2rem">{meta["name"]}</span><br />'
+        content = (
+            '<div id="sublime_love_container" style="padding: 0.6rem">' +
+                '<p style="background-color: color(black alpha(0.25)); padding: 0.6rem; margin: 0 0 0.4rem 0;"><code>{}</code></p>'
+                    .format((signature or key)) +
+                '<strong>{}</strong> <span style="font-size: 1.2rem">{}</span><br />'
+                    .format(meta['prop_type'], meta['name'])
+        )
 
         if 'arguments' in meta:
             content += '<div id="sublime_love__args" style="padding: 0.6rem">'
             for arg in meta['arguments']:
-                content += '<div style="margin: 0.2rem 0">'
-                default = f' (Default: <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{arg["default"]}</code>)' if 'default' in arg else ''
-                content += f'<em>@param</em> <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{arg["name"]}</code> <strong>{arg["type"]}</strong>  —{default} {arg["description"]} <br />'
-                content += '</div>'
+                default = ''
+                if 'default' in arg:
+                    default = ' (Default: <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{}</code>)'.format(arg['default'])
+
+                content += (
+                    '<div style="margin: 0.2rem 0">' +
+                        '<em>@param</em> <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{}</code> <strong>{}</strong>  —{} {} <br />'
+                            .format(arg['name'], arg['type'], default, arg['description']) +
+                    '</div>'
+                )
             content += '</div>'
 
         if 'returns' in meta:
             content += '<div id="sublime_love__returns" style="padding: 0.6rem">'
             for var in meta['returns']:
-                content += '<div style="margin: 0.2rem 0">'
-                content += f'<em>@returns</em> <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{var["name"]}</code> <strong>{var["type"]}</strong>  — {var["description"]} <br />'
-                content += '</div>'
+                content += (
+                    '<div style="margin: 0.2rem 0">' +
+                        '<em>@returns</em> <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{}</code> <strong>{}</strong>  — {} <br />'
+                            .format(var['name'], var['type'], var['description']) +
+                    '</div>'
+                )
             content += '</div>'
 
-        content += f'<div id="sublime_love__description" style="padding: 0.2rem 0;"><span>{meta["description"]}</span></div>'
-        content += f'<div id="sublime_love__links"><a href="{links["wiki_link"]}">Wiki</a> | <a href="{links["api_link"]}">API</a></div>'
+        content += (
+            '<div id="sublime_love__description" style="padding: 0.2rem 0;"><span>{}</span></div>'
+                .format(meta['description']) +
+                '<div id="sublime_love__links"><a href="{}">Wiki</a> | <a href="{}">API</a></div>'
+                    .format(links['wiki_link'], links['api_link']) +
+            '</div>'
+        )
 
-        content += '</div>'
         self.view.show_popup(
             content,
             max_width=1024,
@@ -68,9 +84,9 @@ class LoveCommand(sublime_plugin.TextCommand):
         module = None
         type_name = None
 
-        if meta["prop_type"] == 'function':
+        if meta['prop_type'] == 'function':
             temp = key.split(':')
-            fn = meta["name"]
+            fn = meta['name']
             if len(temp) == 2:
                 # it's a type func
                 temp = temp[0]
@@ -80,8 +96,8 @@ class LoveCommand(sublime_plugin.TextCommand):
                     type_name = temp[2]
                 elif len(temp) == 2:
                     type_name = temp[1]
-                wiki_link += f'{type_name}:{fn}'
-                api_link += f'{type_name}_{fn}'
+                wiki_link += '{}:{}'.format(type_name, fn)
+                api_link += '{}_{}'.format(type_name, fn)
             elif len(temp) == 1:
                 # it's a module func or top-level callback
                 temp = temp[0]
@@ -90,21 +106,21 @@ class LoveCommand(sublime_plugin.TextCommand):
                     module = temp[1]
 
                 if module:
-                    wiki_link += f'love.{module}.{fn}'
-                    api_link += f'{module}_{fn}'
+                    wiki_link += 'love.{}.{}'.format(module, fn)
+                    api_link += '{}_{}'.format(module, fn)
                 else:
-                    wiki_link += f'love.{fn}'
+                    wiki_link += 'love.{}'.format(fn)
                     api_link += fn
-        elif meta["prop_type"] == 'module':
-            module = meta["name"]
-            wiki_link += f'love.{module}'
+        elif meta['prop_type'] == 'module':
+            module = meta['name']
+            wiki_link += 'love.{}'.format(module)
             api_link += module
-        elif meta["prop_type"] == 'type':
+        elif meta['prop_type'] == 'type':
             temp = key.split('.')
             module = temp[1]
-            type_name = meta["name"]
+            type_name = meta['name']
             wiki_link += type_name
-            api_link += f'type_{type_name}'
+            api_link += 'type_{}'.format(type_name)
 
         return { "wiki_link": wiki_link, "api_link": api_link }
 
@@ -113,7 +129,7 @@ class LoveListener(sublime_plugin.EventListener):
 
     def __init__(self):
         cls = self.__class__
-        self.completions = sublime.CompletionList()
+        self.loveCompletions = sublime.CompletionList()
         self.kinds = {
             'function': sublime.KIND_FUNCTION,
             'type': sublime.KIND_TYPE,
@@ -146,11 +162,13 @@ class LoveListener(sublime_plugin.EventListener):
 
         if (keyword.split('.')[0] == 'love'):
             newCompletions = self.get_completions(keyword)
-            self.completions.set_completions(newCompletions)
+            self.loveCompletions.completions = None
+            self.loveCompletions.set_completions(newCompletions)
         else:
-            self.completions.set_completions([])
+            self.loveCompletions.completions = None
+            self.loveCompletions.set_completions([])
 
-        return self.completions
+        return self.loveCompletions
 
     def on_hover(self, view, point, hover_zone):
         cls = self.__class__
@@ -177,7 +195,7 @@ class LoveListener(sublime_plugin.EventListener):
 
         words = prefix.split('.')
         if words[0] == 'love':
-            completions = []
+            loveCompletions = []
 
             for i, key in enumerate(cls.api.keys()):
                 item = cls.api[key]
@@ -194,10 +212,10 @@ class LoveListener(sublime_plugin.EventListener):
                     completion_text,
                     sublime.COMPLETION_FORMAT_SNIPPET,
                     kind,
-                    f"<a href='{href}'>{description}</a>"
+                    '''<a href='{}'>{}</a>'''.format(href, description)
                 )
-                completions.append(completion)
+                loveCompletions.append(completion)
 
-            return completions
+            return loveCompletions
 
         return []
