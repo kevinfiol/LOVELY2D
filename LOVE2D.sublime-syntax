@@ -1,6 +1,0 @@
-%YAML 1.2
----
-name: LÖVE2D
-file_extensions: [lua]
-scope: source.love
-extends: Packages/Lua/Lua.sublime-syntax
