@@ -28,7 +28,7 @@ class LoveCommand(sublime_plugin.TextCommand):
 
         content = ''
         content += '<div id="sublime_love_container" style="padding: 0.6rem">'
-        content += f'<p><code style="background-color: color(black alpha(0.25)); padding: 0.4rem;">{signature or key}</code></p>'
+        content += f'<p style="background-color: color(black alpha(0.25)); padding: 0.4rem;"><code>{signature or key}</code></p>'
         content += f'<strong>{meta["prop_type"]}</strong> <span style="font-size: 1.2rem">{meta["name"]}</span><br />'
 
         if 'arguments' in meta:
