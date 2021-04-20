@@ -1,6 +1,6 @@
 %YAML 1.2
 ---
-name: LÖVELY2D
+name: LOVELY2D
 file_extensions: [lua]
 scope: source.lovely
 extends: Packages/Lua/Lua.sublime-syntax
