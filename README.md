@@ -57,3 +57,8 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
 }
 
 ```
+
+## Known Issues / To-Do
+
+* (Bug) Invoking the API popup on anything under the `love.` namespace closes the autocomplete. This is unintended, and I'm not sure why it happens (help appreciated!)
+* Implement function signature helper while typing in parameters
