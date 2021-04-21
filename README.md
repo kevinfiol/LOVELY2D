@@ -8,17 +8,17 @@ A LÖVE2D plugin for Sublime Text 4 that provides autocomplete and API informati
 
 **Note: LÖVELY2D is intended to work with Sublime Text versions 4102 and above.** To find out how to download Sublime Text 4, check out [this gist.](https://gist.github.com/jfcherng/7bf4103ea486d1f67b7970e846b3a619)
 
-## Package Control
+### Package Control
 
 LÖVELY2D is not on [Package Control](https://packagecontrol.io/) yet. Stay tuned.
 
-## Manually
+### Manually
 
 1. Navigate to your `Packages` folder (easiest way to find it is from within Sublime Text, go to `Preferences > Browse Packages...`).
 2. Download the latest release from the [releases page](https://github.com/kevinfiol/LOVELY2D/releases).
 3. Unzip the downloaded archive. Copy the directory `LOVELY2D-x.x.x` into your `Packages` folder.
 
-## Using Git
+### With Git
 
 Use `git clone` to clone this repository into your `Packages` folder.
 
