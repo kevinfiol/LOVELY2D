@@ -45,7 +45,7 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
         "lua-ls": {
             "enabled": true,
             "command": [
-                "C:\\Users\\johndoe\\lua-lsp\\sumneko.lua-1.19.1\\server\\bin\\Windows\\lua-language-server.exe", // Example for Windows
+                "C:\\Users\\johndoe\\lua-lsp\\sumneko.lua-1.19.1\\server\\bin\\Windows\\lua-language-server.exe",
                 "-E", "C:\\Users\\johndoe\\lua-lsp\\sumneko.lua-1.19.1\\server\\main.lua"
             ],
             "selector": "source.lovely | source.lua",
