@@ -155,6 +155,7 @@ class LoveListener(sublime_plugin.EventListener):
         keyword = ''
         i = locations[0] - 2
         ptr = view.substr(i)
+
         while ptr != ' ' and ptr != '\n' and ptr != '\t' and ptr != '(' and i > -1:
             keyword = ptr + keyword
             i = i - 1
@@ -167,6 +168,12 @@ class LoveListener(sublime_plugin.EventListener):
         else:
             self.loveCompletions.completions = None
             self.loveCompletions.set_completions([])
+
+        # hide autocomplete if you just autocompleted a function
+        if view.substr(locations[0] - 1) == '(':
+            view.run_command('hide_auto_complete')
+
+        # print( view.substr(view.line(locations[0])) )
 
         return self.loveCompletions
 
