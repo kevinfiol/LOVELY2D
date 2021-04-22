@@ -38,7 +38,7 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
 [Sublime LSP](https://github.com/sublimelsp/LSP) is an implementation of the Language Server Protocol for Sublime Text. You can use it in conjunction with LÖVELY2D for an even better LÖVE2D development experience.
 
 1. Follow the instructions to install and enable the Lua language server [here](https://lsp.sublimetext.io/language_servers/#lua).
-2. In `LSP.sublime-settings`, modify the `selector` and `diagnostics` property so that LÖVELY2D Syntax files are correctly parsed and that diagnostics doesn't nag you about the `love` global. Example:
+2. In `LSP.sublime-settings`, modify the `selector` and `settings` property so that LÖVELY2D Syntax files are correctly parsed and diagnostics doesn't nag you about the `love` global. Example:
 
 ```json
 // LSP.sublime-settings
@@ -51,8 +51,12 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
                 "-E", "C:\\Users\\johndoe\\lua-lsp\\sumneko.lua-1.19.1\\server\\main.lua"
             ],
             "selector": "source.lovely | source.lua",
-            "diagnostics": {
-                "globals": ["love"]
+            "settings": {
+                "Lua": {
+                    "diagnostics": {
+                        "globals": ["love"]
+                    }
+                }
             }
         }
     }
@@ -63,4 +67,5 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
 ## Known Issues / To-Do
 
 * (Bug) Invoking the API popup on anything under the `love.` namespace closes the autocomplete. This is unintended, and I'm not sure why it happens (help appreciated!)
+* Function override signatures not provided in hints
 * ~~Implement function signature helper while typing in parameters~~ *(Added in 0.6.0)*
