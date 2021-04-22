@@ -26,9 +26,17 @@ class LoveCommand(sublime_plugin.TextCommand):
             else:
                 signature += '()'
 
+            signature += ' -> '
+            if 'returns' in meta:
+                for i, arg in enumerate(meta['returns']):
+                    signature += '{}: {}'.format(arg['name'], arg['type'])
+                    if i != len(meta['returns']) - 1: signature += ', '
+            else:
+                signature += 'nil'
+
         content = (
-            '<div id="sublime_love_container" style="padding: 0.6rem">' +
-                '<p style="background-color: color(black alpha(0.25)); padding: 0.6rem; margin: 0 0 0.4rem 0;"><code>{}</code></p>'
+            '<div id="sublime_love_container" style="padding: 0.4rem">' +
+                '<p style="background-color: color(black alpha(0.25)); padding: 0.6rem; margin: 0 0 0.4rem 0; font-size: 0.9rem;"><code>{}</code></p>'
                     .format((signature or key)) +
                 '<strong>{}</strong> <span style="font-size: 1.2rem">{}</span><br />'
                     .format(meta['prop_type'], meta['name'])
@@ -128,6 +136,7 @@ class LoveListener(sublime_plugin.EventListener):
     api = None
 
     def __init__(self):
+        sublime_plugin.EventListener.__init__(self)
         cls = self.__class__
         self.loveCompletions = sublime.CompletionList()
         self.kinds = {
@@ -156,7 +165,7 @@ class LoveListener(sublime_plugin.EventListener):
         i = locations[0] - 2
         ptr = view.substr(i)
 
-        while ptr != ' ' and ptr != '\n' and ptr != '\t' and ptr != '(' and i > -1:
+        while ptr not in set([' ', '\n', '\t', '(']) and (i > -1):
             keyword = ptr + keyword
             i = i - 1
             ptr = view.substr(i)
@@ -173,8 +182,6 @@ class LoveListener(sublime_plugin.EventListener):
         if view.substr(locations[0] - 1) == '(':
             view.run_command('hide_auto_complete')
 
-        # print( view.substr(view.line(locations[0])) )
-
         return self.loveCompletions
 
     def on_hover(self, view, point, hover_zone):
@@ -188,7 +195,7 @@ class LoveListener(sublime_plugin.EventListener):
         prevs = ''
         i = word.a - 1
         ptr = view.substr(i)
-        while ptr != ' ' and ptr != '\n' and ptr != '\t' and ptr != '(' and i > -1:
+        while ptr not in set([' ', '\n', '\t', '(']) and (i > -1):
             prevs = ptr + prevs
             i = i - 1
             ptr = view.substr(i)
@@ -200,29 +207,100 @@ class LoveListener(sublime_plugin.EventListener):
     def get_completions(self, prefix):
         cls = self.__class__
 
-        words = prefix.split('.')
-        if words[0] == 'love':
-            loveCompletions = []
+        loveCompletions = []
 
-            for i, key in enumerate(cls.api.keys()):
-                item = cls.api[key]
+        for i, key in enumerate(cls.api.keys()):
+            item = cls.api[key]
 
-                description = item['meta']['description'].split('.')[0] + '.'
-                prop_type = item['meta']['prop_type'] or 'variable'
-                kind = self.kinds[prop_type]
-                href = 'subl:love' + " " + sublime.encode_value({ "key": key, "point": "", "hide_on_mouse_move": False })
-                completion_text = (key + '($0)') if prop_type == 'function' else key
+            description = item['meta']['description'].split('.')[0] + '.'
+            prop_type = item['meta']['prop_type'] or 'variable'
+            kind = self.kinds[prop_type]
+            href = 'subl:love' + " " + sublime.encode_value({ "key": key, "point": "", "hide_on_mouse_move": False })
+            completion_text = (key + '($0)') if prop_type == 'function' else key
 
-                completion = sublime.CompletionItem(
-                    key,
-                    prop_type,
-                    completion_text,
-                    sublime.COMPLETION_FORMAT_SNIPPET,
-                    kind,
-                    '''<a href='{}'>{}</a>'''.format(href, description)
-                )
-                loveCompletions.append(completion)
+            completion = sublime.CompletionItem(
+                key,
+                prop_type,
+                completion_text,
+                sublime.COMPLETION_FORMAT_SNIPPET,
+                kind,
+                '''<a href='{}'>{}</a>'''.format(href, description)
+            )
+            loveCompletions.append(completion)
 
-            return loveCompletions
+        return loveCompletions
 
-        return []
+class LoveTextListener(sublime_plugin.TextChangeListener):
+    def __init__(self):
+        sublime_plugin.TextChangeListener.__init__(self)
+        self.api = LoveListener.get_api()
+        self.popupFlags = sublime.COOPERATE_WITH_AUTO_COMPLETE
+
+    def on_text_changed(self, changes):
+        change = changes[0]
+        view = self.buffer.primary_view()
+        point = change.a.pt
+        if not view.match_selector(point, 'source.lovely'):
+            return None
+
+        # am i inside a function?
+        i = point - 1
+        j = point
+        minI = view.full_line(point).a
+        maxJ = view.full_line(point).b - 1
+        ptr1 = view.substr(i)
+        ptr2 = view.substr(j)
+
+        while ptr1 not in set(['\n', '\t', '(']) and (i >= minI):
+            i = i - 1
+            ptr1 = view.substr(i)
+        while ptr2 not in set(['\n', '\t', ')']) and (j <= maxJ):
+            j = j + 1
+            ptr2 = view.substr(j)
+
+        if ptr1 == '(' and ptr2 == ')' and change.str != '':
+            i = i - 1
+            keyPtr = view.substr(i)
+            keyword = ''
+            while keyPtr not in set(['\n', '\t', ' ']) and (i >= minI):
+                keyword = keyPtr + keyword
+                i = i - 1
+                keyPtr = view.substr(i)
+
+            if keyword in self.api and self.api[keyword]['meta']['prop_type'] == 'function':
+                content = self.get_content_for_keyword(keyword)
+                if not view.is_popup_visible():
+                    view.show_popup(content, flags=self.popupFlags, max_width=640, location=change.a.pt)
+                else:
+                    view.hide_popup()
+                    view.show_popup(content, flags=self.popupFlags, max_width=640, location=change.a.pt)
+
+    def get_content_for_keyword(self, keyword):
+        meta = self.api[keyword]['meta']
+        signature = keyword
+        if 'arguments' in meta:
+            signature += '('
+            for i, arg in enumerate(meta['arguments']):
+                signature += '{}: {}'.format(arg['name'], arg['type'])
+                if 'default' in arg: signature += ' = {}'.format(arg['default'])
+                if i != len(meta['arguments']) - 1: signature += ', '
+            signature += ')'
+        else:
+            signature += '()'
+
+        signature += ' -> '
+        if 'returns' in meta:
+            for i, arg in enumerate(meta['returns']):
+                signature += '{}: {}'.format(arg['name'], arg['type'])
+                if i != len(meta['returns']) - 1: signature += ', '
+        else:
+            signature += 'nil'
+
+        content = (
+            '<div id="sublime_lovesignature_container" style="padding: 0.4rem">' +
+                '<p style="background-color: color(black alpha(0.25)); padding: 0.6rem; margin: 0 0 0.4rem 0; font-size: 0.9rem;"><code>{}</code></p>'
+                    .format((signature or key)) +
+            '</div>'
+        )
+
+        return content
