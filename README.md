@@ -2,7 +2,9 @@
 
 ![video demo](demo.gif)
 
-A LÖVE2D plugin for Sublime Text 4 that provides autocomplete and API information. Based on [LÖVE-API](https://github.com/love2d-community/love-api).
+A Sublime Text 4 plugin for LÖVE2D development that provides autocomplete and API information.
+
+Based on [LÖVE-API](https://github.com/love2d-community/love-api).
 
 ## Installation
 
@@ -35,7 +37,7 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
 
 [Sublime LSP](https://github.com/sublimelsp/LSP) is an implementation of the Language Server Protocol for Sublime Text. You can use it in conjunction with LÖVELY2D for an even better LÖVE2D development experience.
 
-1. Follow the instructions to install and enable the Lua language server [here](https://lsp.sublimetext.io/language_servers/#lua)
+1. Follow the instructions to install and enable the Lua language server [here](https://lsp.sublimetext.io/language_servers/#lua).
 2. In `LSP.sublime-settings`, modify the `selector` and `diagnostics` property so that LÖVELY2D Syntax files are correctly parsed and that diagnostics doesn't nag you about the `love` global. Example:
 
 ```json
@@ -45,7 +47,7 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
         "lua-ls": {
             "enabled": true,
             "command": [
-                "C:\\Users\\johndoe\\lua-lsp\\sumneko.lua-1.19.1\\server\\bin\\Windows\\lua-language-server.exe", // Example for Windows
+                "C:\\Users\\johndoe\\lua-lsp\\sumneko.lua-1.19.1\\server\\bin\\Windows\\lua-language-server.exe",
                 "-E", "C:\\Users\\johndoe\\lua-lsp\\sumneko.lua-1.19.1\\server\\main.lua"
             ],
             "selector": "source.lovely | source.lua",
@@ -57,3 +59,8 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
 }
 
 ```
+
+## Known Issues / To-Do
+
+* (Bug) Invoking the API popup on anything under the `love.` namespace closes the autocomplete. This is unintended, and I'm not sure why it happens (help appreciated!)
+* Implement function signature helper while typing in parameters
