@@ -3,78 +3,91 @@ import sublime_plugin
 import json, os
 
 class LoveCommand(sublime_plugin.TextCommand):
+    def __init__(self, view):
+        sublime_plugin.TextCommand.__init__(self, view)
+        self.api = LoveListener.get_api()
+        self.contentCache = {}
+
+    def addToCache(self, key, content):
+        if len(self.contentCache) == 10:
+            self.contentCache.popitem()
+        self.contentCache[key] = content
+
     def run(self, edit, key, point, hide_on_mouse_move):
-        api = LoveListener.get_api()
-        meta = api[key]['meta']
-        links = self.get_links(key, meta)
-
-        if point == '':
-            point = -1
-
         flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY if hide_on_mouse_move else sublime.COOPERATE_WITH_AUTO_COMPLETE
+        content = None
+        if point == '': point = -1
 
-        signature = None
-        if meta['prop_type'] == 'function':
-            signature = key
+        if key in self.contentCache:
+            content = self.contentCache[key]
+        else:
+            meta = self.api[key]['meta']
+            links = self.get_links(key, meta)
+
+            signature = None
+            if meta['prop_type'] == 'function':
+                signature = key
+                if 'arguments' in meta:
+                    signature += '('
+                    for i, arg in enumerate(meta['arguments']):
+                        signature += '{}: {}'.format(arg['name'], arg['type'])
+                        if 'default' in arg: signature += ' = {}'.format(arg['default'])
+                        if i != len(meta['arguments']) - 1: signature += ', '
+                    signature += ')'
+                else:
+                    signature += '()'
+
+                signature += ' -> '
+                if 'returns' in meta:
+                    for i, arg in enumerate(meta['returns']):
+                        signature += '{}: {}'.format(arg['name'], arg['type'])
+                        if i != len(meta['returns']) - 1: signature += ', '
+                else:
+                    signature += 'nil'
+
+            content = (
+                '<div id="sublime_love_container" style="padding: 0.4rem">' +
+                    '<p style="background-color: color(black alpha(0.25)); padding: 0.6rem; margin: 0 0 0.4rem 0; font-size: 0.9rem;"><code>{}</code></p>'
+                        .format((signature or key)) +
+                    '<strong>{}</strong> <span style="font-size: 1.2rem">{}</span><br />'
+                        .format(meta['prop_type'], meta['name'])
+            )
+
             if 'arguments' in meta:
-                signature += '('
-                for i, arg in enumerate(meta['arguments']):
-                    signature += '{}: {}'.format(arg['name'], arg['type'])
-                    if 'default' in arg: signature += ' = {}'.format(arg['default'])
-                    if i != len(meta['arguments']) - 1: signature += ', '
-                signature += ')'
-            else:
-                signature += '()'
+                content += '<div id="sublime_love__args" style="padding: 0.6rem">'
+                for arg in meta['arguments']:
+                    default = ''
+                    if 'default' in arg:
+                        default = ' (Default: <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{}</code>)'.format(arg['default'])
 
-            signature += ' -> '
+                    content += (
+                        '<div style="margin: 0.2rem 0">' +
+                            '<em>@param</em> <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{}</code> <strong>{}</strong>  —{} {} <br />'
+                                .format(arg['name'], arg['type'], default, arg['description']) +
+                        '</div>'
+                    )
+                content += '</div>'
+
             if 'returns' in meta:
-                for i, arg in enumerate(meta['returns']):
-                    signature += '{}: {}'.format(arg['name'], arg['type'])
-                    if i != len(meta['returns']) - 1: signature += ', '
-            else:
-                signature += 'nil'
+                content += '<div id="sublime_love__returns" style="padding: 0.6rem">'
+                for var in meta['returns']:
+                    content += (
+                        '<div style="margin: 0.2rem 0">' +
+                            '<em>@returns</em> <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{}</code> <strong>{}</strong>  — {} <br />'
+                                .format(var['name'], var['type'], var['description']) +
+                        '</div>'
+                    )
+                content += '</div>'
 
-        content = (
-            '<div id="sublime_love_container" style="padding: 0.4rem">' +
-                '<p style="background-color: color(black alpha(0.25)); padding: 0.6rem; margin: 0 0 0.4rem 0; font-size: 0.9rem;"><code>{}</code></p>'
-                    .format((signature or key)) +
-                '<strong>{}</strong> <span style="font-size: 1.2rem">{}</span><br />'
-                    .format(meta['prop_type'], meta['name'])
-        )
+            content += (
+                '<div id="sublime_love__description" style="padding: 0.2rem 0;"><span>{}</span></div>'
+                    .format(meta['description']) +
+                    '<div id="sublime_love__links"><a href="{}">Wiki</a> | <a href="{}">API</a></div>'
+                        .format(links['wiki_link'], links['api_link']) +
+                '</div>'
+            )
 
-        if 'arguments' in meta:
-            content += '<div id="sublime_love__args" style="padding: 0.6rem">'
-            for arg in meta['arguments']:
-                default = ''
-                if 'default' in arg:
-                    default = ' (Default: <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{}</code>)'.format(arg['default'])
-
-                content += (
-                    '<div style="margin: 0.2rem 0">' +
-                        '<em>@param</em> <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{}</code> <strong>{}</strong>  —{} {} <br />'
-                            .format(arg['name'], arg['type'], default, arg['description']) +
-                    '</div>'
-                )
-            content += '</div>'
-
-        if 'returns' in meta:
-            content += '<div id="sublime_love__returns" style="padding: 0.6rem">'
-            for var in meta['returns']:
-                content += (
-                    '<div style="margin: 0.2rem 0">' +
-                        '<em>@returns</em> <code style="background-color: color(black alpha(0.25)); padding: 0 0.2rem;">{}</code> <strong>{}</strong>  — {} <br />'
-                            .format(var['name'], var['type'], var['description']) +
-                    '</div>'
-                )
-            content += '</div>'
-
-        content += (
-            '<div id="sublime_love__description" style="padding: 0.2rem 0;"><span>{}</span></div>'
-                .format(meta['description']) +
-                '<div id="sublime_love__links"><a href="{}">Wiki</a> | <a href="{}">API</a></div>'
-                    .format(links['wiki_link'], links['api_link']) +
-            '</div>'
-        )
+            self.addToCache(key, content)
 
         self.view.show_popup(
             content,
@@ -235,6 +248,12 @@ class LoveTextListener(sublime_plugin.TextChangeListener):
         sublime_plugin.TextChangeListener.__init__(self)
         self.api = LoveListener.get_api()
         self.popupFlags = sublime.COOPERATE_WITH_AUTO_COMPLETE
+        self.contentCache = {}
+
+    def addToCache(self, key, content):
+        if len(self.contentCache) == 10:
+            self.contentCache.popitem()
+        self.contentCache[key] = content
 
     def on_text_changed(self, changes):
         change = changes[0]
@@ -268,7 +287,12 @@ class LoveTextListener(sublime_plugin.TextChangeListener):
                 keyPtr = view.substr(i)
 
             if keyword in self.api and self.api[keyword]['meta']['prop_type'] == 'function':
-                content = self.get_content_for_keyword(keyword)
+                content = None
+                if keyword in self.contentCache:
+                    content = self.contentCache[keyword]
+                else:
+                    content = self.get_content_for_keyword(keyword)
+                    self.addToCache(keyword, content)
                 if not view.is_popup_visible():
                     view.show_popup(content, flags=self.popupFlags, max_width=640, location=change.a.pt)
                 else:
