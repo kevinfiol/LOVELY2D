@@ -247,13 +247,6 @@ class LoveTextListener(sublime_plugin.TextChangeListener):
     def __init__(self):
         sublime_plugin.TextChangeListener.__init__(self)
         self.api = LoveListener.get_api()
-        self.popupFlags = sublime.COOPERATE_WITH_AUTO_COMPLETE
-        self.contentCache = {}
-
-    def addToCache(self, key, content):
-        if len(self.contentCache) == 10:
-            self.contentCache.popitem()
-        self.contentCache[key] = content
 
     def on_text_changed(self, changes):
         change = changes[0]
@@ -278,6 +271,14 @@ class LoveTextListener(sublime_plugin.TextChangeListener):
             ptr2 = view.substr(j)
 
         if ptr1 == '(' and ptr2 == ')' and change.str != '':
+            # you're in a function call!
+            # let's get all of the text between the parentheses
+            # at this point, i and j should be at the positions of the beginning and end of parentheses respectively
+            # we can use this to get the position of the currently changed param
+            paramStr = view.substr(sublime.Region(i + 1, change.a.pt))
+            pos = len(paramStr.split(',')) - 1
+
+            # get the actual function name, e.g., `love.graphics.rectangle`
             i = i - 1
             keyPtr = view.substr(i)
             keyword = ''
@@ -286,26 +287,23 @@ class LoveTextListener(sublime_plugin.TextChangeListener):
                 i = i - 1
                 keyPtr = view.substr(i)
 
+            # use the function name to get the metadata for that function to build the signature popup
             if keyword in self.api and self.api[keyword]['meta']['prop_type'] == 'function':
-                content = None
-                if keyword in self.contentCache:
-                    content = self.contentCache[keyword]
-                else:
-                    content = self.get_content_for_keyword(keyword)
-                    self.addToCache(keyword, content)
+                content = self.get_content_for_keyword(keyword, pos)
                 if not view.is_popup_visible():
-                    view.show_popup(content, flags=self.popupFlags, max_width=640, location=change.a.pt)
+                    view.show_popup(content, max_width=640, location=change.a.pt)
                 else:
                     view.hide_popup()
-                    view.show_popup(content, flags=self.popupFlags, max_width=640, location=change.a.pt)
+                    view.show_popup(content, max_width=640, location=change.a.pt)
 
-    def get_content_for_keyword(self, keyword):
+    def get_content_for_keyword(self, keyword, pos):
         meta = self.api[keyword]['meta']
         signature = keyword
         if 'arguments' in meta:
             signature += '('
             for i, arg in enumerate(meta['arguments']):
-                signature += '{}: {}'.format(arg['name'], arg['type'])
+                template = '<strong style="text-decoration: underline;">{}: {}</strong>' if i == pos else '{}: {}'
+                signature += template.format(arg['name'], arg['type'])
                 if 'default' in arg: signature += ' = {}'.format(arg['default'])
                 if i != len(meta['arguments']) - 1: signature += ', '
             signature += ')'
