@@ -1,9 +1,6 @@
 local api = require 'love_api'
-local extra = require 'extra'
 local json = require 'json'
 local inspect = require 'inspect'
-
--- local x = extra(api)
 
 function exists(x)
     return x ~= nil
@@ -72,17 +69,12 @@ function parseModules(t, parent, namespace)
     end
 end
 
-local love = {
-
-}
-
+local love = {}
 
 parseFunctions(api.functions, love, 'love')
 parseModules(api.modules, love, 'love')
 parseFunctions(api.callbacks, love, 'love')
 parseTypes(api.types, love, 'love')
-
--- print(inspect(map))
 
 local file = io.open('output.json', 'w')
 file:write(json.encode(love))
