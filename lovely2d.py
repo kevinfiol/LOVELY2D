@@ -170,7 +170,7 @@ class LoveListener(sublime_plugin.EventListener):
         return cls.api
 
     def on_query_completions(self, view, prefix, locations):
-        if not all(view.match_selector(pt, 'source.lovely') for pt in locations):
+        if not all(view.match_selector(pt, 'source.lua.lovely') for pt in locations):
             return None
 
         # get the last word
@@ -200,7 +200,7 @@ class LoveListener(sublime_plugin.EventListener):
     def on_hover(self, view, point, hover_zone):
         cls = self.__class__
 
-        if not view.match_selector(point, 'source.lovely'):
+        if not view.match_selector(point, 'source.lua.lovely'):
             return None
 
         word = view.word(point)
@@ -252,7 +252,7 @@ class LoveTextListener(sublime_plugin.TextChangeListener):
         change = changes[0]
         view = self.buffer.primary_view()
         point = change.a.pt
-        if not view.match_selector(point, 'source.lovely'):
+        if not view.match_selector(point, 'source.lua.lovely'):
             return None
 
         # am i inside a function?

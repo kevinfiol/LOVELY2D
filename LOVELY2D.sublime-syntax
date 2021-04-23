@@ -2,5 +2,5 @@
 ---
 name: LOVELY2D
 file_extensions: [lua]
-scope: source.lovely
+scope: source.lua.lovely
 extends: Packages/Lua/Lua.sublime-syntax
