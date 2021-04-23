@@ -78,9 +78,9 @@ local love = {
 
 
 parseFunctions(api.functions, love, 'love')
+parseModules(api.modules, love, 'love')
 parseFunctions(api.callbacks, love, 'love')
 parseTypes(api.types, love, 'love')
-parseModules(api.modules, love, 'love')
 
 -- print(inspect(map))
 
