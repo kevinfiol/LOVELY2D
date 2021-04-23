@@ -33,6 +33,8 @@ git clone https://github.com/kevinfiol/LOVELY2D.git
 
 From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover tips should function normally.
 
+*Tip:* I recommend setting `"auto_complete_preserve_order": "none"` in your Sublime preferences for more predictable auto-complete behavior.
+
 ### Usage with Sublime LSP
 
 [Sublime LSP](https://github.com/sublimelsp/LSP) is an implementation of the Language Server Protocol for Sublime Text. You can use it in conjunction with LÖVELY2D for an even better LÖVE2D development experience.

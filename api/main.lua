@@ -10,9 +10,12 @@ function ternary(cond, T, F)
     if cond then return T else return F end
 end
 
-function parseFunctions(t, parent, namespace)
+function parseFunctions(t, parent, namespace, opt)
+    if opt == nil then
+        opt = '.'
+    end
     for _, fn in ipairs(t) do
-        local name = namespace .. '.' .. fn.name
+        local name = namespace .. opt .. fn.name
         parent[name] = {
             meta = {
                 prop_type = 'function',
@@ -45,7 +48,7 @@ function parseTypes(t, parent, namespace)
             --     nil
             -- )
             if ty.functions ~= nil then
-                parseFunctions(ty.functions, parent, name)
+                parseFunctions(ty.functions, parent, name, ':')
             end
         end
     end
@@ -76,6 +79,7 @@ parseModules(api.modules, love, 'love')
 parseFunctions(api.callbacks, love, 'love')
 parseTypes(api.types, love, 'love')
 
+api_json = json.encode(love)
 local file = io.open('output.json', 'w')
-file:write(json.encode(love))
+file:write(api_json)
 file:close()
