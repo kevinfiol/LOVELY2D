@@ -22,7 +22,6 @@ class LoveCommand(sublime_plugin.TextCommand):
             content = self.contentCache[key]
         else:
             meta = self.api[key]['meta']
-            links = self.get_links(key, meta)
 
             signature = None
             if meta['prop_type'] == 'function':
@@ -83,7 +82,7 @@ class LoveCommand(sublime_plugin.TextCommand):
                 '<div id="sublime_love__description" style="padding: 0.2rem 0;"><span>{}</span></div>'
                     .format(meta['description']) +
                     '<div id="sublime_love__links"><a href="{}">Wiki</a> | <a href="{}">API</a></div>'
-                        .format(links['wiki_link'], links['api_link']) +
+                        .format(meta['wiki_link'], meta['api_link']) +
                 '</div>'
             )
 
@@ -96,54 +95,6 @@ class LoveCommand(sublime_plugin.TextCommand):
             flags=flags,
             location=point
         )
-
-    def get_links(self, key, meta):
-        wiki_link = 'https://love2d.org/wiki/'
-        api_link = 'https://love2d-community.github.io/love-api/#'
-
-        fn = None
-        module = None
-        type_name = None
-
-        if meta['prop_type'] == 'function':
-            temp = key.split(':')
-            fn = meta['name']
-            if len(temp) == 2:
-                # it's a type func
-                temp = temp[0]
-                temp = temp.split('.')
-                if len(temp) == 3:
-                    module = temp[1]
-                    type_name = temp[2]
-                elif len(temp) == 2:
-                    type_name = temp[1]
-                wiki_link += '{}:{}'.format(type_name, fn)
-                api_link += '{}_{}'.format(type_name, fn)
-            elif len(temp) == 1:
-                # it's a module func or top-level callback
-                temp = temp[0]
-                temp = temp.split('.')
-                if len(temp) == 3:
-                    module = temp[1]
-
-                if module:
-                    wiki_link += 'love.{}.{}'.format(module, fn)
-                    api_link += '{}_{}'.format(module, fn)
-                else:
-                    wiki_link += 'love.{}'.format(fn)
-                    api_link += fn
-        elif meta['prop_type'] == 'module':
-            module = meta['name']
-            wiki_link += 'love.{}'.format(module)
-            api_link += module
-        elif meta['prop_type'] == 'type':
-            temp = key.split('.')
-            module = temp[1]
-            type_name = meta['name']
-            wiki_link += type_name
-            api_link += 'type_{}'.format(type_name)
-
-        return { "wiki_link": wiki_link, "api_link": api_link }
 
 class LoveListener(sublime_plugin.EventListener):
     api = None

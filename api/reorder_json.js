@@ -1,15 +1,9 @@
 const json = require('./output.json');
 
-const typeFuncs = {}
 const firstLevel = {};
 const secondLevel = {};
+const thirdLevel = {}
 for (let key in json) {
-    if (key.split(':').length == 2) {
-        typeFuncs[key] = json[key];
-        delete json[key];
-        continue;
-    }
-
     if (key.split('.').length == 2) {
         firstLevel[key] = json[key];
         delete json[key];
@@ -19,12 +13,17 @@ for (let key in json) {
         secondLevel[key] = json[key];
         delete json[key];
     }
+
+    if (key.split('.').length == 4) {
+        thirdLevel[key] = json[key];
+        delete json[key];
+    }
 }
 
 const reordered = {
     ...firstLevel,
     ...secondLevel,
-    ...typeFuncs
+    ...thirdLevel
 };
 
 require('fs').writeFileSync('./output.json', JSON.stringify(reordered));
