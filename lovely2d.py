@@ -88,6 +88,9 @@ class LoveCommand(sublime_plugin.TextCommand):
 
             self.addToCache(key, content)
 
+        if self.view.is_popup_visible(): # for reference hover overrides
+            self.view.hide_popup()
+
         self.view.show_popup(
             content,
             max_width=1024,
@@ -242,10 +245,10 @@ class LoveTextListener(sublime_plugin.TextChangeListener):
             if keyword in self.api and self.api[keyword]['meta']['prop_type'] == 'function':
                 content = self.get_content_for_keyword(keyword, pos)
                 if not view.is_popup_visible():
-                    view.show_popup(content, max_width=640, location=change.a.pt)
+                    view.show_popup(content, max_width=640, location=change.a.pt, flags=sublime.COOPERATE_WITH_AUTO_COMPLETE)
                 else:
                     view.hide_popup()
-                    view.show_popup(content, max_width=640, location=change.a.pt)
+                    view.show_popup(content, max_width=640, location=change.a.pt, flags=sublime.COOPERATE_WITH_AUTO_COMPLETE)
 
     def get_content_for_keyword(self, keyword, pos):
         meta = self.api[keyword]['meta']
