@@ -2,7 +2,7 @@
 
 ![video demo](demo.gif)
 
-A Sublime Text 4 plugin for LÖVE2D development that provides autocomplete and API information.
+A (WIP) Sublime Text 4 plugin for LÖVE2D development that provides autocomplete and API information.
 
 Based on [LÖVE-API](https://github.com/love2d-community/love-api).
 
