@@ -42,8 +42,7 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
 1. Follow the instructions to install and enable the Lua language server [here](https://lsp.sublimetext.io/language_servers/#lua).
 2. In `LSP.sublime-settings`, modify the `selector` and `settings` property so that LÖVELY2D Syntax files are correctly parsed and diagnostics doesn't nag you about the `love` global. Example:
 
-```jsonc
-// LSP.sublime-settings
+```json
 {
     "clients": {
         "lua-ls": {
