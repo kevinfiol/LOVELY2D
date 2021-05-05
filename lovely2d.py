@@ -1,6 +1,6 @@
 import sublime
 import sublime_plugin
-import json, os
+import json, os, re
 
 class LoveCommand(sublime_plugin.TextCommand):
     def __init__(self, view):
@@ -202,6 +202,53 @@ class LoveTextListener(sublime_plugin.TextChangeListener):
         sublime_plugin.TextChangeListener.__init__(self)
         self.api = LoveListener.get_api()
 
+    def check_function_bounds(self, view, cursor_point):
+        # am i inside a function?
+        i = cursor_point - 1
+        j = cursor_point
+
+        minI = view.full_line(cursor_point).a
+        maxJ = view.full_line(cursor_point).b - 1
+        ptr1 = view.substr(i)
+        ptr2 = view.substr(j)
+
+        sub_funcs = 0
+        while ptr1 not in set(['\n', '\t']) and (i >= minI) and not (ptr1 == '(' and sub_funcs == 0):
+            if ptr1 == ')': sub_funcs += 1
+            if ptr1 == '(' and sub_funcs > 0: sub_funcs -= 1
+            i = i - 1
+            ptr1 = view.substr(i)
+        while ptr2 not in set(['\n', '\t', ')']) and (j <= maxJ):
+            j = j + 1
+            ptr2 = view.substr(j)
+
+        print(i)
+        print(j)
+
+        is_inside_func = (ptr1 == '(' and ptr2 == ')' and sub_funcs == 0)
+
+        return [is_inside_func, i, j, minI, maxJ]
+
+    def get_function_name(self, view, i, minI):
+        # i would be the position of the '(' parentheses
+        i = i - 1
+        keyPtr = view.substr(i)
+        keyword = ''
+        while keyPtr not in set(['\n', '\t', ' ', '(']) and (i >= minI):
+            keyword = keyPtr + keyword
+            i = i - 1
+            keyPtr = view.substr(i)
+
+        return keyword
+
+    def show_popup(self, keyword, pos, view, cursor_point):
+        content = self.get_content_for_keyword(keyword, pos)
+        if not view.is_popup_visible():
+            view.show_popup(content, max_width=640, location=cursor_point)
+        else:
+            view.hide_popup()
+            view.show_popup(content, max_width=640, location=cursor_point)
+
     def on_text_changed(self, changes):
         change = changes[0]
         view = self.buffer.primary_view()
@@ -209,46 +256,47 @@ class LoveTextListener(sublime_plugin.TextChangeListener):
         if not view.match_selector(point, 'source.lua.lovely'):
             return None
 
-        # am i inside a function?
-        i = point - 1
-        j = point
-        minI = view.full_line(point).a
-        maxJ = view.full_line(point).b - 1
-        ptr1 = view.substr(i)
-        ptr2 = view.substr(j)
+        cursor_point = view.sel()[0].b
+        [is_inside_func, i, j, minI, maxJ] = self.check_function_bounds(view, cursor_point)
 
-        while ptr1 not in set(['\n', '\t', '(']) and (i >= minI):
-            i = i - 1
-            ptr1 = view.substr(i)
-        while ptr2 not in set(['\n', '\t', ')']) and (j <= maxJ):
-            j = j + 1
-            ptr2 = view.substr(j)
-
-        if ptr1 == '(' and ptr2 == ')' and change.str != '':
+        if is_inside_func:
             # you're in a function call!
             # let's get all of the text between the parentheses
             # at this point, i and j should be at the positions of the beginning and end of parentheses respectively
             # we can use this to get the position of the currently changed param
-            paramStr = view.substr(sublime.Region(i + 1, change.a.pt))
-            pos = len(paramStr.split(',')) - 1
+            # get all typed text up until where the user made a change
+            pos = None
+            use_async_popup = False
+            if change.a.pt < i:
+                # autocompleted
+                use_async_popup = True
+                pos = 0
+            elif change.str == ',':
+                fn_pattern = r'[a-zA-Z]+\([^\)]*\)(\.[^\)]*\))?'
+                paramStr = view.substr(sublime.Region(i + 1, j))
+                paramStr = re.sub(fn_pattern, '', paramStr) # removes function calls
+                pos = len(paramStr.split(',')) - 1
+            else:
+                fn_pattern = r'[a-zA-Z]+\([^\)]*\)(\.[^\)]*\))?'
+                paramStr = view.substr(sublime.Region(i + 1, change.a.pt))
+                paramStr = re.sub(fn_pattern, '', paramStr) # removes function calls
+                print(paramStr)
+                pos = len(paramStr.split(',')) - 1
+                if change.str == '': use_async_popup = True
 
             # get the actual function name, e.g., `love.graphics.rectangle`
-            i = i - 1
-            keyPtr = view.substr(i)
-            keyword = ''
-            while keyPtr not in set(['\n', '\t', ' ']) and (i >= minI):
-                keyword = keyPtr + keyword
-                i = i - 1
-                keyPtr = view.substr(i)
+            keyword = self.get_function_name(view, i, minI)
+            print(keyword)
+
+            def async_show_popup():
+                self.show_popup(keyword, pos, view, cursor_point)
 
             # use the function name to get the metadata for that function to build the signature popup
             if keyword in self.api and self.api[keyword]['meta']['prop_type'] == 'function':
-                content = self.get_content_for_keyword(keyword, pos)
-                if not view.is_popup_visible():
-                    view.show_popup(content, max_width=640, location=change.a.pt, flags=sublime.COOPERATE_WITH_AUTO_COMPLETE)
+                if use_async_popup:
+                    sublime.set_timeout(async_show_popup, 50)
                 else:
-                    view.hide_popup()
-                    view.show_popup(content, max_width=640, location=change.a.pt, flags=sublime.COOPERATE_WITH_AUTO_COMPLETE)
+                    self.show_popup(keyword, pos, view, cursor_point)
 
     def get_content_for_keyword(self, keyword, pos):
         meta = self.api[keyword]['meta']
