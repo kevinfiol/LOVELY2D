@@ -12,7 +12,7 @@ Based on [LÖVE-API](https://github.com/love2d-community/love-api).
 
 ### Package Control
 
-LÖVELY2D is not on [Package Control](https://packagecontrol.io/) yet. Stay tuned.
+LÖVELY2D is available on [Package Control](https://packagecontrol.io/packages/LOVELY2D).
 
 ### Manually
 
