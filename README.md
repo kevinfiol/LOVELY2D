@@ -8,8 +8,6 @@ Based on [LÖVE-API](https://github.com/love2d-community/love-api).
 
 ## Installation
 
-**Note: LÖVELY2D is intended to work with Sublime Text versions 4102 and above.** To find out how to download Sublime Text 4, check out [this gist.](https://gist.github.com/jfcherng/7bf4103ea486d1f67b7970e846b3a619)
-
 ### Package Control
 
 LÖVELY2D is available on [Package Control](https://packagecontrol.io/packages/LOVELY2D).
