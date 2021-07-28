@@ -37,30 +37,16 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
 
 [Sublime LSP](https://github.com/sublimelsp/LSP) is an implementation of the Language Server Protocol for Sublime Text. You can use it in conjunction with LÖVELY2D for an even better LÖVE2D development experience.
 
-1. Follow the instructions to install and enable the Lua language server [here](https://lsp.sublimetext.io/language_servers/#lua).
-2. In `LSP.sublime-settings`, modify the `selector` and `settings` property so that LÖVELY2D Syntax files are correctly parsed and diagnostics doesn't nag you about the `love` global. Example:
+1. Install [Sublime LSP](https://packagecontrol.io/packages/LSP).
+2. Install [LSP-lua](https://packagecontrol.io/packages/LSP-lua)
+3. Open the Command Palette, and go to `LSP-lua Settings`. Modify the `selector` and `Lua.diagnostics.globals` property so that LÖVELY2D Syntax files are correctly parsed and diagnostics doesn't nag you about the `love` global. Example:
 
 ```json
+// Settings in here override those in "LSP-lua/LSP-lua.sublime-settings"
 {
-    "clients": {
-        "lua-ls": {
-            "enabled": true,
-            "command": [
-                "C:\\Users\\johndoe\\lua-lsp\\sumneko.lua-1.19.1\\server\\bin\\Windows\\lua-language-server.exe",
-                "-E", "C:\\Users\\johndoe\\lua-lsp\\sumneko.lua-1.19.1\\server\\main.lua"
-            ],
-            "selector": "source.lovely | source.lua",
-            "settings": {
-                "Lua": {
-                    "diagnostics": {
-                        "globals": ["love"]
-                    }
-                }
-            }
-        }
-    }
+    "selector": "source.lovely | source.lua",
+    "settings": { "Lua.diagnostics.globals": ["love"] }
 }
-
 ```
 
 ## Known Issues / To-Do
