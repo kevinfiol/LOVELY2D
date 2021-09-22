@@ -35,7 +35,9 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
 
 ### Usage with Sublime LSP
 
-[Sublime LSP](https://github.com/sublimelsp/LSP) is an implementation of the Language Server Protocol for Sublime Text. You can use it in conjunction with LÖVELY2D for an even better LÖVE2D development experience.
+[Sublime LSP](https://github.com/sublimelsp/LSP) is an implementation of the Language Server Protocol for Sublime Text.
+
+**Note:** the [LSP-lua](https://github.com/sublimelsp/LSP-lua) package now ships with LÖVE2D support out of the box that is more intelligent than LOVELY2D thanks to the Language Server Protocol. You may or may not want to use LOVELY2D in conjunction with Sublime LSP for this reason. Nevertheless, see below if you'd like to continue:
 
 1. Install [Sublime LSP](https://packagecontrol.io/packages/LSP).
 2. Install [LSP-lua](https://packagecontrol.io/packages/LSP-lua)
