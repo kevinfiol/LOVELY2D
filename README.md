@@ -44,7 +44,6 @@ From within a `.lua` file, set the syntax to `LOVELY2D`. Autocomplete and hover 
 3. Open the Command Palette, and go to `LSP-lua Settings`. Modify the `selector` and `Lua.diagnostics.globals` property so that LÖVELY2D Syntax files are correctly parsed and diagnostics doesn't nag you about the `love` global. Example:
 
 ```json
-// Settings in here override those in "LSP-lua/LSP-lua.sublime-settings"
 {
     "selector": "source.lovely | source.lua",
     "settings": { "Lua.diagnostics.globals": ["love"] }
