@@ -6,6 +6,8 @@ A (WIP) Sublime Text 4 plugin for LÖVE2D development that provides autocomplete
 
 Based on [LÖVE-API](https://github.com/love2d-community/love-api).
 
+**Status: [LSP-lua](https://github.com/sublimelsp/LSP-lua) now ships with LÖVE2D support. Unless you want to avoid LSP, I recommend that over LÖVELY2D.**
+
 ## Installation
 
 ### Package Control
